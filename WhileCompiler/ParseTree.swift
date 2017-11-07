@@ -108,7 +108,7 @@ func stmt() -> ([Token]) -> [(Stmt, [Token])] {
     let pWhile: ret = /T_KWD(s: "while") ~ lbexp ~ /T_KWD(s: "do") ~ lblock ==>
         { let (((_, y), _), w) = $0; return While(b: y, bl: w) }
     let pFor: ret = /T_KWD(s: "for") ~ assign ~ /T_KWD(s: "upto") ~ laexp ~ /T_KWD(s: "do") ~ lblock ==>
-        { let (((((_, y), _), u), _), w) = $0; return For(a: y as Assign, i: u, bl: w) }
+        { let (((((_, y), _), u), _), w) = $0; return For(a: y as! Assign, i: u, bl: w) }
     let read: ret = /T_KWD(s: "read") ~ IdParser() ==> { let (_, y) = $0; return Read(y) }
     let writeS: ret = /T_KWD(s: "write") ~ StringParser() ==> { let (_, y) = $0; return WriteS(y) }
     let write: ret = /T_KWD(s: "write") ~ laexp ==> { let (_, y) = $0; return Write(y) }

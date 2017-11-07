@@ -9,7 +9,7 @@
 import Foundation
 
 // MARK: - Printable Protocol
-extension Rexp: Printable {
+extension Rexp: CustomStringConvertible {
     var description: String {
         switch self {
         case is Null:           return "Null"
@@ -30,7 +30,7 @@ extension Rexp: Printable {
     }
 }
 
-extension Val: Printable {
+extension Val: CustomStringConvertible {
     var description: String {
         switch self {
         case is void:           return "Not matched"
@@ -45,7 +45,7 @@ extension Val: Printable {
     }
 }
 
-extension Stmt: Printable {
+extension Stmt: CustomStringConvertible {
     var description: String {
         switch self {
         case is Skip: return "Skip"
@@ -61,7 +61,7 @@ extension Stmt: Printable {
     }
 }
 
-extension AExp: Printable {
+extension AExp: CustomStringConvertible {
     var description: String {
         switch self {
         case let t as Var: return "Var(\(t.s))"
@@ -72,7 +72,7 @@ extension AExp: Printable {
     }
 }
 
-extension BExp: Printable {
+extension BExp: CustomStringConvertible {
     var description: String {
         switch self {
         case is True: return "True"
@@ -86,17 +86,20 @@ extension BExp: Printable {
 // MARK: - Extensions
 extension String {
     subscript(index: Int) -> Character {
-        return self[advance(self.startIndex, index)]
+        return self[self.startIndex.advancedBy(index)]
+//      return self[advance(self.startIndex, index)]
     }
     
     /// Returns the substring from the given range
     subscript(range: Range<Int>) -> String {
-        let start = advance(self.startIndex, range.startIndex)
-        let end = advance(self.startIndex, range.endIndex)
+        let start = self.startIndex.advancedBy(range.startIndex)
+//      let start = advance(self.startIndex, range.startIndex)
+        let end = self.startIndex.advancedBy(range.endIndex)
+//      let end = advance(self.startIndex, range.endIndex)
         return self[start..<end]
     }
     
-    var count: Int { return self.utf16Count }
+    var count: Int { return self.utf16.count }
     /// Returns the first character
     var head: Character { return self[0] }
     /// Returns the original string minus the first character
@@ -105,7 +108,7 @@ extension String {
 
 extension Array {
     /// Returns the original array minus the first element
-    var tail: [T] {
+    var tail: [Element] {
         return Array(self[1..<count])
     }
 }
@@ -137,12 +140,22 @@ func readln() -> String {
 
 // Opens a file and returns it as a String
 func readfile(path: String) -> String {
-    return String(contentsOfFile: path)!
+    do {
+        let str = try String(contentsOfFile: path)
+        return str
+    } catch let error {
+        Swift.print("readFile: \(error)")
+        return ""
+    }
 }
 
 /// Write a string to a file
 func writefile(file: String, path: String) {
-    file.writeToFile(path, atomically: true, encoding: NSUTF8StringEncoding)
+    do {
+        _ = try file.writeToFile(path, atomically: true, encoding: NSUTF8StringEncoding)
+    } catch let error {
+        Swift.print("readFile: \(error)")
+    }
 }
 
 func execJasmin(path: String) {

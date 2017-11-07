@@ -29,7 +29,7 @@ class Star: UnaryRexp {}
 
 class Chars: Rexp {
     let c: [Character]
-    init(_ c: String) { self.c = Array(c) }
+    init(_ c: String) { self.c = Array(c.characters) }
 }
 class Plus: UnaryRexp {}
 class Opt: UnaryRexp {}
@@ -74,18 +74,18 @@ func der(c: Character, r: Rexp) -> Rexp {
     case is Null:           return Null()
     case is Empty:          return Null()
     case let r as Char:     return c == r.c ? Empty() : Null()
-    case let r as Alt:      return Alt(der(c, r.r1), der(c, r.r2))
+    case let r as Alt:      return Alt(der(c, r: r.r1), der(c, r: r.r2))
     case let r as Seq:      return nullable(r.r1) ?
-        Alt(Seq(der(c, r.r1), r.r2), der(c, r.r2)) :
-        Seq(der(c, r.r1), r.r2)
-    case let r as Star:     return Seq(der(c, r.r), Star(r.r))
-    case let r as Chars:    return contains(r.c, c) ? Empty() : Null()
-    case let r as Plus:     return Seq(der(c, r.r), Star(r.r))
-    case let r as Opt:      return der(c, r.r)
-    case let r as Ntimes:   return r.n == 0 ? Null() : Seq(der(c, r.r), Ntimes(r.r, r.n-1))
-    case let r as Mult:     return r.m == 0 ? Null() : Seq(der(c, r.r), Mult(r: r.r, n: r.n-1, m: r.m-1))
-    case let r as Not:      return Not(der(c, r.r))
-    case let r as Rec:      return der(c, r.r)
+        Alt(Seq(der(c, r: r.r1), r.r2), der(c, r: r.r2)) :
+        Seq(der(c, r: r.r1), r.r2)
+    case let r as Star:     return Seq(der(c, r: r.r), Star(r.r))
+    case let r as Chars:    return r.c.contains(c) ? Empty() : Null()
+    case let r as Plus:     return Seq(der(c, r: r.r), Star(r.r))
+    case let r as Opt:      return der(c, r: r.r)
+    case let r as Ntimes:   return r.n == 0 ? Null() : Seq(der(c, r: r.r), Ntimes(r.r, r.n-1))
+    case let r as Mult:     return r.m == 0 ? Null() : Seq(der(c, r: r.r), Mult(r: r.r, n: r.n-1, m: r.m-1))
+    case let r as Not:      return Not(der(c, r: r.r))
+    case let r as Rec:      return der(c, r: r.r)
     default:                return r
     }
 }
@@ -94,12 +94,12 @@ func der(c: Character, r: Rexp) -> Rexp {
 ///
 /// Iterates over s, calling func der with each character
 func ders(s: String, r:Rexp) -> Rexp {
-    return s.isEmpty ? r : ders(s.tail, simp(der(s.head, r)).r)
+    return s.isEmpty ? r : ders(s.tail, r: simp(der(s.head, r: r)).r)
 }
 
 /// Returns 'true' iff expression r can match s
 func matches(r: Rexp, s:String) -> Bool {
-    return nullable(ders(s, r))
+    return nullable(ders(s, r: r))
 }
 
 /// Simplifies a given Rexp
@@ -109,12 +109,12 @@ func simp(r: Rexp) -> (r: Rexp, f: Val -> Val) {
     func f_alt(f1: Val -> Val, f2: Val -> Val) -> Val -> Val {
         return {
             if let v = $0 as? left { return left(f1(v.v)) }
-            else { let v = $0 as right; return right(f2(v.v)) }
+            else { let v = $0 as! right; return right(f2(v.v)) }
         }
     }
     
     func f_seq(f1: Val -> Val, f2: Val -> Val) -> Val -> Val {
-        return { let v = $0 as seq; return seq(f1(v.v1), f2(v.v2)) }
+        return { let v = $0 as! seq; return seq(f1(v.v1), f2(v.v2)) }
     }
     
     func f_error(f: Val = void()) -> Val -> Val {
@@ -122,7 +122,7 @@ func simp(r: Rexp) -> (r: Rexp, f: Val -> Val) {
     }
     
     func f_rec(f: Val -> Val) -> Val -> Val {
-        return { let v = $0 as rec; return rec(v.x, f($0)) }
+        return { let v = $0 as! rec; return rec(v.x, f($0)) }
     }
     
     switch r {
@@ -132,7 +132,7 @@ func simp(r: Rexp) -> (r: Rexp, f: Val -> Val) {
         case (is Null, _):          return ( r2, { right(f2($0)) } )
         case (_, is Null):          return ( r1, { left(f1($0)) } )
         case (_, _) where r1 == r2: return ( r1, { left(f1($0)) } )
-        default:                    return ( Alt(r1, r2), f_alt(f1, f2) )
+        default:                    return ( Alt(r1, r2), f_alt(f1, f2: f2) )
         }
         
     case let r as Seq:
@@ -142,7 +142,7 @@ func simp(r: Rexp) -> (r: Rexp, f: Val -> Val) {
         case (_, is Null):          return ( Null(), f_error() )
         case (is Empty, _):         return ( r2, { seq(f1(void()), f2($0)) } )
         case (_, is Empty):         return ( r1, { seq(f1($0), f2(void())) } )
-        default:                    return ( Seq(r1, r2), f_seq(f1, f2) )
+        default:                    return ( Seq(r1, r2), f_seq(f1, f2: f2) )
         }
         
     case let r as Rec:

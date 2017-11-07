@@ -48,14 +48,14 @@ func inj(r: Rexp, c: Character, v: Val) -> Val {
     switch (r, v) {
     case (is Char, _):                  return char(c)
     case (is Chars, _):                 return char(c)
-    case let (r as Alt, v as left):     return left(inj(r.r1, c, v.v))
-    case let (r as Alt, v as right):    return right(inj(r.r2, c, v.v))
-    case let (r as Seq, v as seq):      return seq(inj(r.r1, c, v.v1), v.v2)
-    case let (r as Seq, v as left):     let w = v.v as seq; return seq(inj(r.r1, c, w.v1), w.v2)
-    case let (r as Seq, v as right):    return seq(mkeps(r.r1), inj(r.r2, c, v.v))
-    case let (r as Star, v as seq):     return stars([inj(r.r, c, v.v1), v.v2])
-    case let (r as Plus, v as seq):     return stars([inj(r.r, c, v.v1), v.v2])
-    case (let r as Rec, _):             return rec(r.x, inj(r.r, c, v))
+    case let (r as Alt, v as left):     return left(inj(r.r1, c: c, v: v.v))
+    case let (r as Alt, v as right):    return right(inj(r.r2, c: c, v: v.v))
+    case let (r as Seq, v as seq):      return seq(inj(r.r1, c: c, v: v.v1), v.v2)
+    case let (r as Seq, v as left):     let w = v.v as! seq; return seq(inj(r.r1, c: c, v: w.v1), w.v2)
+    case let (r as Seq, v as right):    return seq(mkeps(r.r1), inj(r.r2, c: c, v: v.v))
+    case let (r as Star, v as seq):     return stars([inj(r.r, c: c, v: v.v1), v.v2])
+    case let (r as Plus, v as seq):     return stars([inj(r.r, c: c, v: v.v1), v.v2])
+    case (let r as Rec, _):             return rec(r.x, inj(r.r, c: c, v: v))
     default:                            return void()
     }
 }
@@ -88,10 +88,10 @@ func env(v: Val) -> token {
 
 func lex(r: Rexp, s:String) -> Val {
     if s.isEmpty { return nullable(r) ? mkeps(r) : void() }
-    let (r_simp, f_rect) = simp(der(s.head, r))
-    return inj(r, s.head, f_rect(lex(r_simp, s.tail)))
+    let (r_simp, f_rect) = simp(der(s.head, r: r))
+    return inj(r, c: s.head, v: f_rect(lex(r_simp, s: s.tail)))
 }
 
 func tok(s:String, r: Rexp = TOKEN) -> token {
-    return env(lex(r, s))
+    return env(lex(r, s: s))
 }
