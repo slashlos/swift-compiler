@@ -65,7 +65,7 @@ class Bop: BExp {
 
 // MARK: - Arithmetic expressions
 func aexp() -> ([Token]) -> [(AExp, [Token])] {
-    func aop(s: String) -> [Token] -> [(AExp, [Token])] {
+    func aop(_ s: String) -> ([Token]) -> [(AExp, [Token])] {
         return lTe ~ /T_OP(s: s) ~ laexp ==> { let ((x, _), z) = $0; return Aop(o: s, a1: x, a2: z) }
     }
     return aop("+") || aop("-") || lTe
@@ -73,7 +73,7 @@ func aexp() -> ([Token]) -> [(AExp, [Token])] {
 let laexp = lazy(aexp)
 
 func Te() -> ([Token]) -> [(AExp, [Token])] {
-    func aop(s: String) -> ([Token]) -> [(AExp, [Token])] {
+    func aop(_ s: String) -> ([Token]) -> [(AExp, [Token])] {
         return lFa ~ /T_OP(s: s) ~ lTe ==> { let ((x, _), z) = $0; return Aop(o: s, a1: x, a2: z) }
     }
     return aop("*") || aop("/") || lFa
@@ -88,7 +88,7 @@ let lFa = lazy(Fa)
 
 // MARK: - Boolean expressions
 func bexp() -> ([Token]) -> [(BExp, [Token])] {
-    func b(s: String) -> ([Token]) -> [(BExp, [Token])] {
+    func b(_ s: String) -> ([Token]) -> [(BExp, [Token])] {
         return (laexp ~ /T_OP(s: s) ~ laexp) ==> { let ((x, _), z) = $0; return Bop(o: s, a1: x, a2: z) } }
     
     return b("==") || b("!=") || b("<") || b(">") ||
@@ -100,7 +100,7 @@ let lbexp = lazy(bexp)
 
 // MARK: - Statements
 func stmt() -> ([Token]) -> [(Stmt, [Token])] {
-    typealias ret = [Token] -> [(Stmt, [Token])]
+    typealias ret = ([Token]) -> [(Stmt, [Token])]
     let skip: ret = /T_KWD(s: "skip") ==> { _ in Skip() }
     let assign: ret = IdParser() ~ /T_OP(s: ":=") ~ laexp ==> { let ((x, _), z) = $0; return Assign(s: x, a: z) }
     let pIf: ret = /T_KWD(s: "if") ~ lbexp ~ /T_KWD(s: "then") ~ lblock ~ /T_KWD(s: "else") ~ lblock ==>

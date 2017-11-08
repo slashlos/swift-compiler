@@ -121,6 +121,7 @@
 				TargetAttributes = {
 					37B803D919DAF936004984B4 = {
 						CreatedOnToolsVersion = 6.1;
+						LastSwiftMigration = 0830;
 					};
 				};
 			};
@@ -241,6 +242,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = WhileCompiler;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -248,6 +250,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = WhileCompiler;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

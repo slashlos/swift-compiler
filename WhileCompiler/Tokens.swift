@@ -70,6 +70,6 @@ var lex_rules: LexRules = [
     "semi"      : { (_) -> Token in T_SEMI() },
     "paren"     : { (s) -> Token in T_PAREN(s: s) } ]
 
-func tokeniser(t: token, rs: LexRules = lex_rules) -> [Token]{
+func tokeniser(_ t: token, rs: LexRules = lex_rules) -> [Token]{
     return t.map { rs[$0.0]?($0.1) ?? T_ERR() }
 }

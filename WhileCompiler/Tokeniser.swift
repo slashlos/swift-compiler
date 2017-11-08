@@ -33,7 +33,7 @@ class rec: Val {
     init(_ x: String, _ v: Val) { self.x = x; self.v = v}
 }
 
-func mkeps(r: Rexp) -> Val {
+func mkeps(_ r: Rexp) -> Val {
     switch r {
     case is Empty:      return void()
     case let r as Alt:  return nullable(r.r1) ? left(mkeps(r.r1)) : right(mkeps(r.r2))
@@ -44,7 +44,7 @@ func mkeps(r: Rexp) -> Val {
     }
 }
 
-func inj(r: Rexp, c: Character, v: Val) -> Val {
+func inj(_ r: Rexp, c: Character, v: Val) -> Val {
     switch (r, v) {
     case (is Char, _):                  return char(c)
     case (is Chars, _):                 return char(c)
@@ -60,7 +60,7 @@ func inj(r: Rexp, c: Character, v: Val) -> Val {
     }
 }
 
-func flatten(v: Val) -> String {
+func flatten(_ v: Val) -> String {
     switch v {
     case is void:           return ""
     case let v as char:     return String(v.c)
@@ -75,7 +75,7 @@ func flatten(v: Val) -> String {
 
 typealias token = [(String,String)]
 
-func env(v: Val) -> token {
+func env(_ v: Val) -> token {
     switch v {
     case let v as left:     return env(v.v)
     case let v as right:    return env(v.v)
@@ -86,12 +86,12 @@ func env(v: Val) -> token {
     }
 }
 
-func lex(r: Rexp, s:String) -> Val {
+func lex(_ r: Rexp, s:String) -> Val {
     if s.isEmpty { return nullable(r) ? mkeps(r) : void() }
     let (r_simp, f_rect) = simp(der(s.head, r: r))
     return inj(r, c: s.head, v: f_rect(lex(r_simp, s: s.tail)))
 }
 
-func tok(s:String, r: Rexp = TOKEN) -> token {
+func tok(_ s:String, r: Rexp = TOKEN) -> token {
     return env(lex(r, s: s))
 }

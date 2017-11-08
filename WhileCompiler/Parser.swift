@@ -8,17 +8,17 @@
 
 import Foundation
 
-typealias C = CollectionType
+typealias C = Collection
 
-func CharParse(c: Character) -> String ->[(Character, String)] {
+func CharParse(_ c: Character) -> (String) ->[(Character, String)] {
     return { $0.head == c ? [($0.head, $0.tail)] : [] }
 }
 
-func AltParse<I: C, T>(p: I -> [(T, I)], q: I -> [(T, I)]) -> I -> [(T, I)] {
+func AltParse<I: C, T>(_ p: (I) -> [(T, I)], q: (I) -> [(T, I)]) -> (I) -> [(T, I)] {
     return { p($0) + q($0) }
 }
 
-func SeqParse<I: C, T, S>(p: I -> [(T, I)], q: I -> [(S, I)]) -> I -> [((T, S), I)] {
+func SeqParse<I: C, T, S>(_ p: (I) -> [(T, I)], q: (I) -> [(S, I)]) -> (I) -> [((T, S), I)] {
     return {
         var acc = [((T, S), I)]()
         for (head1, tail1) in p($0) {
@@ -30,7 +30,7 @@ func SeqParse<I: C, T, S>(p: I -> [(T, I)], q: I -> [(S, I)]) -> I -> [((T, S), 
     }
 }
 
-func FunParse<I: C, T, S>(p: I -> [(T, I)], f: T -> S) -> I -> [(S, I)] {
+func FunParse<I: C, T, S>(_ p: (I) -> [(T, I)], f: (T) -> S) -> (I) -> [(S, I)] {
     return {
         var acc = [(S, I)]()
         for (head, tail) in p($0){
@@ -40,7 +40,7 @@ func FunParse<I: C, T, S>(p: I -> [(T, I)], f: T -> S) -> I -> [(S, I)] {
     }
 }
 
-func TokParser(tok: Token) -> [Token] -> [(Token, [Token])] {
+func TokParser(_ tok: Token) -> ([Token]) -> [(Token, [Token])] {
     return {
         if let t = $0.first {
             return t == tok ? [(t, $0.tail)] : []
@@ -49,7 +49,7 @@ func TokParser(tok: Token) -> [Token] -> [(Token, [Token])] {
     }
 }
 
-func IdParser() -> [Token] -> [(String, [Token])] {
+func IdParser() -> ([Token]) -> [(String, [Token])] {
     return {
         if let t = $0.first as? T_ID {
             return [(t.s, $0.tail)]
@@ -58,7 +58,7 @@ func IdParser() -> [Token] -> [(String, [Token])] {
     }
 }
 
-func NumParser() -> [Token] -> [(Int, [Token])] {
+func NumParser() -> ([Token]) -> [(Int, [Token])] {
     return {
         if let t = $0.first as? T_NUM {
             return [(Int(t.s)!, $0.tail)]
@@ -67,7 +67,7 @@ func NumParser() -> [Token] -> [(Int, [Token])] {
     }
 }
 
-func StringParser() -> [Token] -> [(String, [Token])] {
+func StringParser() -> ([Token]) -> [(String, [Token])] {
     return {
         if let t = $0.first as? T_STRING {
             return [(t.s, $0.tail)]
@@ -76,7 +76,7 @@ func StringParser() -> [Token] -> [(String, [Token])] {
     }
 }
 
-func StringParse(s: String) -> String -> [(String, String)] {
+func StringParse(_ s: String) -> (String) -> [(String, String)] {
     return {
         if s.count > $0.count { return [] }
         let (prefix, suffix) = ($0[0..<s.count], $0[s.count..<$0.count])
@@ -84,12 +84,12 @@ func StringParse(s: String) -> String -> [(String, String)] {
     }
 }
 
-func StringNumParse() -> String -> [(Int, String)] {
+func StringNumParse() -> (String) -> [(Int, String)] {
     return {
         let reg = "[0-9]+"
-        if let match = $0.rangeOfString(reg, options: .RegularExpressionSearch) {
-            if match.startIndex == $0.startIndex {
-                let dis: Int = $0.startIndex.distanceTo(match.endIndex)
+        if let match = $0.range(of: reg, options: .regularExpression) {
+            if match.lowerBound == $0.startIndex {
+                let dis: Int = $0.characters.distance(from: $0.startIndex, to: match.upperBound)
 //              let dis: Int = distance($0.startIndex, match.endIndex)
                 return [(Int($0[0..<dis])!, $0[dis..<$0.count])]
             }
@@ -98,12 +98,12 @@ func StringNumParse() -> String -> [(Int, String)] {
     }
 }
 
-func StringIdParser() -> String -> [(String, String)] {
+func StringIdParser() -> (String) -> [(String, String)] {
     return {
         let reg = "[a-z][a-z0-9]*"
-        if let match = $0.rangeOfString(reg, options: .RegularExpressionSearch) {
-            if match.startIndex == $0.startIndex {
-                let dis: Int = $0.startIndex.distanceTo(match.endIndex)
+        if let match = $0.range(of: reg, options: .regularExpression) {
+            if match.lowerBound == $0.startIndex {
+                let dis: Int = $0.characters.distance(from: $0.startIndex, to: match.upperBound)
 //              let dis: Int = distance($0.startIndex, match.endIndex)
                 return [(String($0[0..<dis]), $0[dis..<$0.count])]
             }
@@ -112,13 +112,13 @@ func StringIdParser() -> String -> [(String, String)] {
     }
 }
 
-func satisfy<I: C, T>(p: [(T, I)]) -> T {
+func satisfy<I: C, T>(_ p: [(T, I)]) -> T {
     return p.filter { $0.1.isEmpty }.map { $0.0 }.first!
 }
 
-func ||<I: C, T>(p: I -> [(T, I)], q: I -> [(T, I)]) -> I -> [(T, I)] { return AltParse(p, q: q) }
-func ==><I: C, T, S>(p: I -> [(T, I)], f: T -> S) -> I -> [(S, I)]  { return FunParse(p, f: f) }
-func ~<I: C, T, S>(p: I -> [(T, I)], q: I -> [(S, I)]) -> I -> [((T, S), I)] { return SeqParse(p, q: q) }
+func ||<I: C, T>(p: (I) -> [(T, I)], q: (I) -> [(T, I)]) -> (I) -> [(T, I)] { return AltParse(p, q: q) }
+func ==><I: C, T, S>(p: (I) -> [(T, I)], f: (T) -> S) -> (I) -> [(S, I)]  { return FunParse(p, f: f) }
+func ~<I: C, T, S>(p: (I) -> [(T, I)], q: (I) -> [(S, I)]) -> (I) -> [((T, S), I)] { return SeqParse(p, q: q) }
 
 prefix func /(s: String) -> (String) -> [(String, String)] { return StringParse(s) }
 prefix func /(tok: Token) -> ([Token]) -> [(Token, [Token])] { return TokParser(tok) }

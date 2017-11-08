@@ -86,15 +86,15 @@ extension BExp: CustomStringConvertible {
 // MARK: - Extensions
 extension String {
     subscript(index: Int) -> Character {
-        return self[self.startIndex.advancedBy(index)]
+        return self[self.characters.index(self.startIndex, offsetBy: index)]
 //      return self[advance(self.startIndex, index)]
     }
     
     /// Returns the substring from the given range
     subscript(range: Range<Int>) -> String {
-        let start = self.startIndex.advancedBy(range.startIndex)
+        let start = self.characters.index(self.startIndex, offsetBy: range.lowerBound)
 //      let start = advance(self.startIndex, range.startIndex)
-        let end = self.startIndex.advancedBy(range.endIndex)
+        let end = self.characters.index(self.startIndex, offsetBy: range.upperBound)
 //      let end = advance(self.startIndex, range.endIndex)
         return self[start..<end]
     }
@@ -114,7 +114,7 @@ extension Array {
 }
 
 // MARK: - Helper functions
-func count(r: Rexp) -> Int {
+func count(_ r: Rexp) -> Int {
     switch r {
     case let r as BinaryRexp:   return 1 + count(r.r1) + count(r.r2)
     case let r as UnaryRexp:    return 1 + count(r.r)
@@ -127,19 +127,19 @@ func count(r: Rexp) -> Int {
 }
 
 /// Returns a closure which is only evaluated when needed
-func lazy<I, T>(p: () -> I -> T) -> I -> T {
+func lazy<I, T>(_ p: @escaping () -> (I) -> T) -> (I) -> T {
     return  { p()($0) }
 }
 
 /// Reads a line from stdin
 func readln() -> String {
-    let standardInput = NSFileHandle.fileHandleWithStandardInput()
-    let data = NSString(data: standardInput.availableData, encoding:NSUTF8StringEncoding)!
-    return data.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
+    let standardInput = FileHandle.standardInput
+    let data = NSString(data: standardInput.availableData, encoding:String.Encoding.utf8.rawValue)!
+    return data.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 // Opens a file and returns it as a String
-func readfile(path: String) -> String {
+func readfile(_ path: String) -> String {
     do {
         let str = try String(contentsOfFile: path)
         return str
@@ -150,18 +150,60 @@ func readfile(path: String) -> String {
 }
 
 /// Write a string to a file
-func writefile(file: String, path: String) {
+func writefile(_ file: String, path: String) {
     do {
-        _ = try file.writeToFile(path, atomically: true, encoding: NSUTF8StringEncoding)
+        _ = try file.write(toFile: path, atomically: true, encoding: String.Encoding.utf8)
     } catch let error {
         Swift.print("readFile: \(error)")
     }
 }
 
-func execJasmin(path: String) {
+func execJasmin(_ path: String) {
     system("java -jar jasmin.jar \(path).j")
     system("java \(path)/\(path)")
 }
+
+func system(_ command: String) {
+    var args = command.components(separatedBy: " ")
+    let path = args.first
+    args.remove(at: 0)
+    
+    let task = Process()
+    task.launchPath = path
+    task.arguments = args
+    task.launch()
+    task.waitUntilExit()
+}
+
+// Proposal: SE-0077
+
+precedencegroup ComparisonPrecedence {
+    associativity: left
+    higherThan: LogicalConjunctionPrecedence
+}
+infix operator <> : ComparisonPrecedence
+
+precedencegroup Additive {
+    associativity: left
+}
+precedencegroup Multiplicative {
+    associativity: left
+    higherThan: Additive
+}
+precedencegroup BitwiseAnd {
+    associativity: left
+}
+infix operator + : Additive
+infix operator - : Additive
+infix operator * : Multiplicative
+infix operator & : BitwiseAnd
+
+precedencegroup Exponentiative {
+    associativity: left
+    higherThan: Multiplicative
+}
+infix operator ** : Exponentiative
+
 
 // MARK: - Custom Operators
 infix operator ~ { associativity left precedence 150 }

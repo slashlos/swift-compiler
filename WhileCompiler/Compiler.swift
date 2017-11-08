@@ -10,7 +10,7 @@ import Foundation
 typealias Mem = [String:Int]
 typealias Instrs = [String]
 
-func compile_aexp(a: AExp, env: Mem) -> Instrs {
+func compile_aexp(_ a: AExp, env: Mem) -> Instrs {
     switch a {
     case let a as Num: return ["ldc \(a.i)"]
     case let a as Var: return ["iload \(env[a.s]!)"]
@@ -22,7 +22,7 @@ func compile_aexp(a: AExp, env: Mem) -> Instrs {
     }
 }
 
-func compile_bexp(b: BExp, env: Mem, jmp: String) -> Instrs {
+func compile_bexp(_ b: BExp, env: Mem, jmp: String) -> Instrs {
     switch b {
     case let b as Bop where b.o == "=": return compile_aexp(b.a1, env: env) + compile_aexp(b.a2, env: env) + ["if_icmpne \(jmp)"]
     case let b as Bop where b.o == "!=": return compile_aexp(b.a1, env: env) + compile_aexp(b.a2, env: env) + ["if_icmpeq \(jmp)"]
@@ -33,19 +33,19 @@ func compile_bexp(b: BExp, env: Mem, jmp: String) -> Instrs {
 }
 
 var var_count = 0
-func calc_store( env: Mem, i: String) -> Mem {
+func calc_store( _ env: Mem, i: String) -> Mem {
     var _env = env
     if _env[i] == nil { _env[i] = var_count; var_count += 1 }
     return _env
 }
 
 var labl_count = 0
-func calc_labl(x: String) -> String {
+func calc_labl(_ x: String) -> String {
     labl_count += 1
     return "\(x)_\(labl_count)"
 }
 
-func compile_stmt(s: Stmt, env: Mem) -> (i: Instrs, e: Env) {
+func compile_stmt(_ s: Stmt, env: Mem) -> (i: Instrs, e: Env) {
     switch s {
     case is Skip: return ([], env)
     case let s as Assign: let e = calc_store(env, i: s.s); return (compile_aexp(s.a, env: e) + ["istore \(e[s.s]!)"], e)
@@ -81,25 +81,25 @@ func compile_stmt(s: Stmt, env: Mem) -> (i: Instrs, e: Env) {
     }
 }
 
-func compile_bl(bl: Block, env: Mem) -> (i: Instrs, e: Env) {
+func compile_bl(_ bl: Block, env: Mem) -> (i: Instrs, e: Env) {
     if bl.isEmpty { return ([], env) }
     let (i, e) = compile_stmt(bl.first!, env: env)
     let (i2, e2) = compile_bl(bl.tail, env: e)
     return  (i+i2, e2)
 }
 
-func compile(bl: Block) -> String {
+func compile(_ bl: Block) -> String {
     return Header + compile_bl(bl, env: Mem()).i.reduce("") { $0 + $1 + "\n" } + Footer
 }
 
 let Compile = { compile(satisfy(lstmts($0))) }
 
 /// Compiles the path passed in as either the function parameter or program commandline argument
-func compile_file(path: String = Process.arguments[1]) {
+func compile_file(_ path: String = CommandLine.arguments[1]) {
     let content = readfile(path)
-    let file_name = NSURL(fileURLWithPath:path).lastPathComponent
+    let file_name = URL(fileURLWithPath:path).lastPathComponent
 //  let file_name = path.lastPathComponent.componentsSeparatedByString(".")[0]
-    let compiled = Compile(tokeniser(tok(content))).stringByReplacingOccurrencesOfString("XXX", withString: file_name!)
+    let compiled = Compile(tokeniser(tok(content))).replacingOccurrences(of: "XXX", with: file_name!)
     writefile(compiled, path: file_name! + ".j")
     execJasmin(file_name!)
 }

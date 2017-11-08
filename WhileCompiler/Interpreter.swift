@@ -8,7 +8,7 @@
 
 typealias Env = [String:Int]
 
-func eval_aexp(a: AExp, env: Env) -> Int {
+func eval_aexp(_ a: AExp, env: Env) -> Int {
     switch a {
     case let a as Num: return a.i
     case let a as Var: return env[a.s]!
@@ -20,7 +20,7 @@ func eval_aexp(a: AExp, env: Env) -> Int {
     }
 }
 
-func eval_bexp(b: BExp, env: Env) -> Bool {
+func eval_bexp(_ b: BExp, env: Env) -> Bool {
     switch b {
     case is True: return true
     case is False: return false
@@ -32,7 +32,7 @@ func eval_bexp(b: BExp, env: Env) -> Bool {
     }
 }
 
-func eval_stmt(s: Stmt, env: Env) -> Env {
+func eval_stmt(_ s: Stmt, env: Env) -> Env {
     var _env = env
     switch s {
     case is Skip: return env
@@ -47,11 +47,11 @@ func eval_stmt(s: Stmt, env: Env) -> Env {
     }
 }
 
-func eval_bl(bl: Block, env: Env) -> Env {
+func eval_bl(_ bl: Block, env: Env) -> Env {
     return bl.isEmpty ? env : eval_bl(bl.tail, env: eval_stmt(bl.first!, env: env))
 }
 
-func eval(bl: Block) -> Env {
+func eval(_ bl: Block) -> Env {
     return eval_bl(bl, env: Env())
 }
 

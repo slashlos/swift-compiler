@@ -49,7 +49,7 @@ class Rec: Rexp {
 }
 
 /// Returns 'true' iff r matches the empty string
-func nullable(r: Rexp) -> Bool {
+func nullable(_ r: Rexp) -> Bool {
     switch r {
     case is Null:           return false
     case is Empty:          return true
@@ -69,7 +69,7 @@ func nullable(r: Rexp) -> Bool {
 }
 
 /// Calculates the Brzozowski derivative of r with respect to c
-func der(c: Character, r: Rexp) -> Rexp {
+func der(_ c: Character, r: Rexp) -> Rexp {
     switch r {
     case is Null:           return Null()
     case is Empty:          return Null()
@@ -93,35 +93,35 @@ func der(c: Character, r: Rexp) -> Rexp {
 /// Calculates the Brzozowski derivative of r with respect to s.
 ///
 /// Iterates over s, calling func der with each character
-func ders(s: String, r:Rexp) -> Rexp {
+func ders(_ s: String, r:Rexp) -> Rexp {
     return s.isEmpty ? r : ders(s.tail, r: simp(der(s.head, r: r)).r)
 }
 
 /// Returns 'true' iff expression r can match s
-func matches(r: Rexp, s:String) -> Bool {
+func matches(_ r: Rexp, s:String) -> Bool {
     return nullable(ders(s, r: r))
 }
 
 /// Simplifies a given Rexp
 ///
 /// :returns: A 2-tuple of the simplified expression, and a function to recover to recover the original value
-func simp(r: Rexp) -> (r: Rexp, f: Val -> Val) {
-    func f_alt(f1: Val -> Val, f2: Val -> Val) -> Val -> Val {
+func simp(_ r: Rexp) -> (r: Rexp, f: (Val) -> Val) {
+    func f_alt(_ f1: (Val) -> Val, f2: (Val) -> Val) -> (Val) -> Val {
         return {
             if let v = $0 as? left { return left(f1(v.v)) }
             else { let v = $0 as! right; return right(f2(v.v)) }
         }
     }
     
-    func f_seq(f1: Val -> Val, f2: Val -> Val) -> Val -> Val {
+    func f_seq(_ f1: (Val) -> Val, f2: (Val) -> Val) -> (Val) -> Val {
         return { let v = $0 as! seq; return seq(f1(v.v1), f2(v.v2)) }
     }
     
-    func f_error(f: Val = void()) -> Val -> Val {
+    func f_error(_ f: Val = void()) -> (Val) -> Val {
         return { (v) in f }
     }
     
-    func f_rec(f: Val -> Val) -> Val -> Val {
+    func f_rec(_ f: (Val) -> Val) -> (Val) -> Val {
         return { let v = $0 as! rec; return rec(v.x, f($0)) }
     }
     
@@ -170,7 +170,7 @@ func ==(r1: Rexp, r2: Rexp) -> Bool {
 }
 
 /// Converts a string to a Rexp which matches that string
-func stringToRexp(s: String) -> Rexp {
+func stringToRexp(_ s: String) -> Rexp {
     return s.count == 1 ? Char(s.head) : Seq(Char(s.head), stringToRexp(s.tail))
 }
 
