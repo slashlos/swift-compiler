@@ -86,16 +86,13 @@ extension BExp: CustomStringConvertible {
 // MARK: - Extensions
 extension String {
     subscript(index: Int) -> Character {
-        return self[self.characters.index(self.startIndex, offsetBy: index)]
-//      return self[advance(self.startIndex, index)]
+        return self[self.index(self.startIndex, offsetBy: index)]
     }
     
     /// Returns the substring from the given range
     subscript(range: Range<Int>) -> String {
-        let start = self.characters.index(self.startIndex, offsetBy: range.lowerBound)
-//      let start = advance(self.startIndex, range.startIndex)
-        let end = self.characters.index(self.startIndex, offsetBy: range.upperBound)
-//      let end = advance(self.startIndex, range.endIndex)
+        let start = self.index(self.startIndex, offsetBy: range.lowerBound)
+        let end = self.index(self.startIndex, offsetBy: range.upperBound)
         return self[start..<end]
     }
     
@@ -208,7 +205,7 @@ infix operator ** : Exponentiative
 // MARK: - Custom Operators
 infix operator ~ { associativity left precedence 150 }
 infix operator ==> { precedence 140 }
-prefix operator / {}
-postfix operator * {}
-postfix operator + {}
-postfix operator % {}
+prefix operator /
+postfix operator *
+postfix operator +
+postfix operator %

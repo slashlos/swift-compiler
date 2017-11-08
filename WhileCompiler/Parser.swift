@@ -90,7 +90,6 @@ func StringNumParse() -> (String) -> [(Int, String)] {
         if let match = $0.range(of: reg, options: .regularExpression) {
             if match.lowerBound == $0.startIndex {
                 let dis: Int = $0.characters.distance(from: $0.startIndex, to: match.upperBound)
-//              let dis: Int = distance($0.startIndex, match.endIndex)
                 return [(Int($0[0..<dis])!, $0[dis..<$0.count])]
             }
         }
@@ -104,7 +103,6 @@ func StringIdParser() -> (String) -> [(String, String)] {
         if let match = $0.range(of: reg, options: .regularExpression) {
             if match.lowerBound == $0.startIndex {
                 let dis: Int = $0.characters.distance(from: $0.startIndex, to: match.upperBound)
-//              let dis: Int = distance($0.startIndex, match.endIndex)
                 return [(String($0[0..<dis]), $0[dis..<$0.count])]
             }
         }

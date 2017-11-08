@@ -98,8 +98,7 @@ let Compile = { compile(satisfy(lstmts($0))) }
 func compile_file(_ path: String = CommandLine.arguments[1]) {
     let content = readfile(path)
     let file_name = URL(fileURLWithPath:path).lastPathComponent
-//  let file_name = path.lastPathComponent.componentsSeparatedByString(".")[0]
-    let compiled = Compile(tokeniser(tok(content))).replacingOccurrences(of: "XXX", with: file_name!)
-    writefile(compiled, path: file_name! + ".j")
-    execJasmin(file_name!)
+    let compiled = Compile(tokeniser(tok(content))).replacingOccurrences(of: "XXX", with: file_name)
+    writefile(compiled, path: file_name + ".j")
+    execJasmin(file_name)
 }
